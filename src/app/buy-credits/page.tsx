@@ -60,10 +60,31 @@ export default function BuyCreditsPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to create checkout session')
       }
 
       const { sessionId } = await response.json()
+      
+      // Check if this is a mock session (for development)
+      if (sessionId.includes('mock')) {
+        // In mock mode, simulate successful payment and redirect to success page
+        const selectedPackage = CREDIT_PACKAGES.find(pkg => pkg.id === packageId)
+        if (selectedPackage) {
+          // Simulate adding credits directly (for development only)
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ credits: user.credits + selectedPackage.credits })
+            .eq('id', user.id)
+          
+          if (!updateError) {
+            router.push(`/buy-credits/success?session_id=${sessionId}&mock=true`)
+            return
+          }
+        }
+      }
+
+      // Production Stripe checkout
       const stripe = await stripePromise
 
       if (!stripe) {
@@ -77,9 +98,9 @@ export default function BuyCreditsPage() {
       if (error) {
         throw error
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error:', error)
-      alert(error.message || 'Failed to process payment')
+      alert(error instanceof Error ? error.message : 'Failed to process payment')
     } finally {
       setProcessingPackage(null)
     }

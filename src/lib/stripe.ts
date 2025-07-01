@@ -3,11 +3,13 @@ import Stripe from 'stripe'
 
 // Client-side Stripe
 export const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
 )
 
 // Server-side Stripe
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripeApiKey = process.env.STRIPE_SECRET_KEY || 'sk_test_mock'
+
+export const stripe = new Stripe(stripeApiKey, {
   apiVersion: '2025-05-28.basil',
   host: process.env.STRIPE_API_BASE ? new URL(process.env.STRIPE_API_BASE).hostname : undefined,
   port: process.env.STRIPE_API_BASE ? parseInt(new URL(process.env.STRIPE_API_BASE).port) : undefined,

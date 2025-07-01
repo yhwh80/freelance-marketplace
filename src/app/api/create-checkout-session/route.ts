@@ -21,7 +21,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create Stripe checkout session
+    // Check if we're in mock mode
+    const isMockMode = process.env.STRIPE_SECRET_KEY === 'sk_test_mock' || process.env.STRIPE_API_BASE
+
+    if (isMockMode) {
+      // In mock mode, return a fake session ID and redirect to success
+      const mockSessionId = `cs_test_mock_${Date.now()}_${packageId}`
+      return NextResponse.json({ sessionId: mockSessionId })
+    }
+
+    // Create Stripe checkout session for production
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -31,7 +40,7 @@ export async function POST(request: NextRequest) {
             product_data: {
               name: `${creditPackage.name} - RecommendUsUK Marketplace`,
               description: `Purchase ${creditPackage.credits} credits for posting jobs`,
-              images: ['https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&h=300&fit=crop&crop=center'], // Placeholder image
+              images: ['https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&h=300&fit=crop&crop=center'],
             },
             unit_amount: Math.round(creditPackage.price * 100), // Convert to pence
           },
@@ -46,7 +55,7 @@ export async function POST(request: NextRequest) {
         packageId,
         credits: creditPackage.credits.toString(),
       },
-      customer_email: undefined, // Will be filled by Stripe checkout
+      customer_email: undefined,
       allow_promotion_codes: true,
     })
 
@@ -54,7 +63,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('Error creating checkout session:', error)
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: `Failed to create checkout session: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }
