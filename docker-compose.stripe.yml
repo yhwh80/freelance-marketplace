@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Stripe Mock for local testing without real API calls
+  stripe-mock:
+    image: stripe/stripe-mock:latest
+    ports:
+      - "12111:12111"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:12111/v1/products"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Stripe CLI for webhook forwarding (requires authentication)
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    network_mode: host
+    environment:
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+    command: >
+      listen 
+      --forward-to localhost:3001/api/stripe-webhook
+      --skip-verify
+    profiles:
+      - webhook
+    restart: "no"
+
+  # MCP Stripe server (if you have credentials)
+  mcp-stripe:
+    image: mcp/stripe:latest
+    environment:
+      - STRIPE_API_KEY=${STRIPE_API_KEY}
+    command: ["--api-key", "${STRIPE_API_KEY}", "--tools", "all"]
+    profiles:
+      - mcp
+    restart: unless-stopped
+
+volumes:
+  stripe_data:
+
+networks:
+  default:
+    name: stripe-network
