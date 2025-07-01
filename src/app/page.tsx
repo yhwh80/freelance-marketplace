@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { supabase, Job, User } from '@/lib/supabase'
+import { supabase, Job } from '@/lib/supabase'
 
 export default function Home() {
-  const [jobs, setJobs] = useState<Job[]>([])
+  const [, setJobs] = useState<Job[]>([])
   const [stats, setStats] = useState({
     totalJobs: 0,
     totalFreelancers: 0,
@@ -212,7 +212,7 @@ export default function Home() {
               </div>
               <span className="text-xl font-bold">RecommendUsUK</span>
             </div>
-            <p className="text-gray-400 mb-6">The UK's trusted freelance marketplace</p>
+            <p className="text-gray-400 mb-6">The UK&apos;s trusted freelance marketplace</p>
             <div className="flex justify-center space-x-6">
               <Link href="/about" className="text-gray-400 hover:text-white transition-colors">About</Link>
               <Link href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms</Link>
