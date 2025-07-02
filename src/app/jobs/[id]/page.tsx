@@ -5,6 +5,12 @@ import { supabase, Job, Bid } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
+export async function generateStaticParams() {
+  return []
+}
+
+export const dynamic = 'force-dynamic'
+
 interface JobWithClient extends Job {
   users: {
     name: string
